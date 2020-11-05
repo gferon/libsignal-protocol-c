@@ -1118,6 +1118,7 @@ int signal_protocol_identity_is_trusted_identity(signal_protocol_store_context *
 {
     int result = 0;
     signal_buffer *buffer = 0;
+    
 
     assert(context);
     assert(context->identity_key_store.is_trusted_identity);
@@ -1139,6 +1140,41 @@ complete:
 
     return result;
 }
+
+int signal_protocol_identity_get_identity(signal_protocol_store_context *context, const signal_protocol_address *address, ec_public_key **identity_key, void *user_data) {
+    int result = 0;
+    signal_buffer *public_buf = 0;
+    ec_public_key *public_key = 0;
+
+    assert(context);
+    assert(context->identity_key_store.get_identity);
+
+    result = context->identity_key_store.get_identity(
+            address,
+            &public_buf,
+            context->identity_key_store.user_data);
+    if(result < 0) {
+        goto complete;
+    }
+
+    result = curve_decode_point(&public_key, public_buf->data, public_buf->len, context->global_context);
+    if(result < 0) {
+        goto complete;
+    }
+complete:
+    assert(result);
+    if(public_buf) {
+        signal_buffer_free(public_buf);
+    }
+    if(public_key) {
+        SIGNAL_UNREF(public_key);
+    }
+    if(result >= 0) {
+        *identity_key = public_key;
+    }
+    return result;
+}
+
 
 int signal_protocol_sender_key_store_key(signal_protocol_store_context *context, const signal_protocol_sender_key_name *sender_key_name, sender_key_record *record)
 {

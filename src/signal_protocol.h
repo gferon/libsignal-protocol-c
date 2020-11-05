@@ -649,6 +649,14 @@ typedef struct signal_protocol_identity_key_store {
     int (*is_trusted_identity)(const signal_protocol_address *address, uint8_t *key_data, size_t key_len, void *user_data);
 
     /**
+     * Return the saved public identity key for a remote client.
+     * 
+     * @param address the address of the remote client
+     * @return 0 on success, negative on failure
+     **/
+    int (*get_identity)(const signal_protocol_address *address, ec_public_key **identity_key, void *user_data);
+
+    /**
      * Function called to perform cleanup when the data store context is being
      * destroyed.
      */
